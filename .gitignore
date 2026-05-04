@@ -1,0 +1,12 @@
+# secrets — these must never be committed
+.env
+token.json
+credentials.json
+
+# python
+.venv/
+__pycache__/
+*.pyc
+
+# os
+.DS_Store
