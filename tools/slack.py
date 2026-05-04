@@ -9,12 +9,20 @@ from datetime import datetime, timezone
 
 from dotenv import load_dotenv
 from slack_sdk import WebClient
+from slack_sdk.http_retry.builtin_handlers import RateLimitErrorRetryHandler
 from strands import tool
 
 
 def _client() -> WebClient:
     load_dotenv()
-    return WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+    client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+    # Slack's tier-3 endpoints (conversations.history, users.info) rate-limit
+    # at ~50 req/min. With many channel memberships this trips on the first
+    # run. The retry handler honors Slack's Retry-After and re-issues the call
+    # transparently; without it, ratelimited errors collapse the whole tool
+    # to [] via the outer except.
+    client.retry_handlers.append(RateLimitErrorRetryHandler(max_retry_count=3))
+    return client
 
 
 @tool
