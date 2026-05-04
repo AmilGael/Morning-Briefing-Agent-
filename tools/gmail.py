@@ -22,12 +22,27 @@ TOKEN_PATH = ROOT / "token.json"
 
 
 def _google_credentials() -> Credentials:
-    """Load or refresh Google OAuth credentials. Triggers consent on first run."""
+    """Load or refresh Google OAuth credentials. Triggers consent on first run.
+
+    If the saved token's granted scopes are missing any of `ALL_SCOPES`
+    (e.g., we added a new scope since the token was issued), a refresh
+    won't add them — so we force a fresh consent flow instead.
+    """
     creds = None
     if TOKEN_PATH.exists():
         creds = Credentials.from_authorized_user_file(str(TOKEN_PATH), ALL_SCOPES)
+
+    has_required_scopes = bool(
+        creds and set(ALL_SCOPES).issubset(creds.scopes or [])
+    )
+
     if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
+        if (
+            creds
+            and creds.expired
+            and creds.refresh_token
+            and has_required_scopes
+        ):
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
@@ -45,9 +60,13 @@ def _truncate(text: str, limit: int = 200) -> str:
 
 @tool
 def check_gmail(hours_back: int = 12) -> list[dict]:
-    """List unread emails received in the last `hours_back` hours.
+    """List up to 50 unread emails received in the last `hours_back` hours.
 
     Returns a list of {sender, subject, date, snippet} dicts, snippet ≤ 200 chars.
+    Hard-capped at 50 messages (no pagination) — for a morning briefing this is
+    intentional; if you have >50 unread in the window, the agent will work from
+    the most recent 50.
+
     On auth or API failure, logs to stderr and returns [] (graceful degradation
     so the agent run still produces a partial briefing).
     """
