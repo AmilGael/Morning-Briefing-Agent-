@@ -42,8 +42,19 @@ def main() -> None:
         tools=[check_gmail, check_calendar, check_slack],
         system_prompt=SYSTEM_PROMPT,
     )
-    response = agent("What did I miss? Give me my morning briefing.")
-    print(response)
+    result = agent("What did I miss? Give me my morning briefing.")
+
+    # AgentResult.__str__ concatenates every text content block in the final
+    # message. Some routed free models emit reasoning + answer as two separate
+    # text blocks, which produces a duplicated briefing if we print all of them.
+    # Take the last text block — it's the final answer for both well-behaved
+    # single-block models and split-block models.
+    texts = [
+        block["text"]
+        for block in result.message.get("content", [])
+        if "text" in block
+    ]
+    print(texts[-1] if texts else "")
 
 
 if __name__ == "__main__":
