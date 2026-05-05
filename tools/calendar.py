@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from googleapiclient.discovery import build
 from strands import tool
 
-from .gmail import _google_credentials
+from ._google_auth import google_credentials
 
 
 def _format_event_time(value: str) -> str:
@@ -31,7 +31,7 @@ def check_calendar(hours_ahead: int = 24) -> list[dict]:
     On auth or API failure, logs to stderr and returns [].
     """
     try:
-        creds = _google_credentials()
+        creds = google_credentials()
         service = build("calendar", "v3", credentials=creds)
 
         now = datetime.now(timezone.utc)
