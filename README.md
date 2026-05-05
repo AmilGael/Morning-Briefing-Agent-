@@ -20,14 +20,17 @@ Requires Python 3.10+.
 
 ### 1. Clone and install
 
+Clone this repo (or your fork), then:
+
 ```bash
-git clone <your-fork-url>
 cd Morning-Briefing-Agent-
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
 ```
+
+If `pip install` fails on a brand-new Python (e.g. wheels not yet published for the latest 3.x), fall back to Python 3.11 or 3.12.
 
 ### 2. OpenRouter
 
@@ -88,6 +91,8 @@ docs/superpowers/   spec + implementation plan
 - **`invalid_auth` or `missing_scope` from Slack** — you added Bot Token Scopes instead of User Token Scopes. Re-add under User Token Scopes, reinstall the app, copy the new `xoxp-` token.
 - **`MaxTokensReachedException`** — the routed free model produced very verbose reasoning and ran out. Re-run; it's usually intermittent.
 - **`429 Too Many Requests`** — OpenRouter free-tier rate limit. Wait 60 seconds and retry.
+- **The routed free model is occasionally flaky.** It may emit malformed tool calls or run out of tokens mid-reasoning. Two consecutive failures aren't necessarily a config bug — just retry. If it persists, top up OpenRouter with a few cents and switch the `model_id` in `agent.py` to a paid tier like `openrouter/anthropic/claude-3.5-haiku`.
+- **Stuck in a Google consent loop / wrong scopes granted** — delete `token.json` and re-run `python -m tools.gmail`. The scopes are re-requested fresh.
 
 ## Original design docs
 
