@@ -15,7 +15,15 @@ from strands import tool
 
 def _client() -> WebClient:
     load_dotenv()
-    client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+    token = os.environ["SLACK_BOT_TOKEN"]
+    # The env var is named SLACK_BOT_TOKEN for PRD compatibility, but the
+    # value must be a User OAuth Token (xoxp-) — only user tokens see the
+    # caller's channel/group history with the requested scopes.
+    assert token.startswith("xoxp-"), (
+        "SLACK_BOT_TOKEN must be a User OAuth Token (xoxp-…). "
+        "A bot token (xoxb-…) won't see your channel history. See README §4."
+    )
+    client = WebClient(token=token)
     # Slack's tier-3 endpoints (conversations.history, users.info) rate-limit
     # at ~50 req/min. With many channel memberships this trips on the first
     # run. The retry handler honors Slack's Retry-After and re-issues the call

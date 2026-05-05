@@ -20,9 +20,8 @@ Requires Python 3.10+.
 
 ### 1. Clone and install
 
-Clone this repo (or your fork), then:
-
 ```bash
+git clone https://github.com/<you>/Morning-Briefing-Agent-.git
 cd Morning-Briefing-Agent-
 python3 -m venv .venv
 source .venv/bin/activate
