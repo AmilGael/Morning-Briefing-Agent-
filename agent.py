@@ -41,6 +41,7 @@ def main() -> None:
         model=model,
         tools=[check_gmail, check_calendar, check_slack],
         system_prompt=SYSTEM_PROMPT,
+        callback_handler=None,
     )
     result = agent("What did I miss? Give me my morning briefing.")
 
